@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller / Build
+build/
+build_out/
+*.spec
+nuitka-crash-report.xml
+
+# Archives
+*.zip
+*.rar
+NexusClient_Portable.zip
+NexusClient_SourceCode.zip
+
+# Project Data
+profiles/
+servers/
+minecraft_data/
+test_server/
+tests/
+test_c_dir/
+test_s_dir/
+
+# Test Scripts
+test_dl.py
+test_forge.py
+test_hang*.py
+test_lock.py
+test.bat
+create_archive.py
+
+# Secrets and Credentials (CRITICAL)
+token.json
+credentials.json
+launcher_config.json
+
+# Agents Context
+.agents/
