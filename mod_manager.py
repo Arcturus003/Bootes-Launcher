@@ -32,7 +32,7 @@ class ModrinthAPI:
             return r.json().get("hits", [])
         except Exception as e:
             print(f"Modrinth API Hatası: {e}")
-            return []
+            return None
 
     @staticmethod
     def get_project_details(project_id):

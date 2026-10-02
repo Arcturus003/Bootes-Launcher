@@ -623,6 +623,28 @@ class DetailPanel(QWidget):
                 except: pass
             del self.url_labels[url]
 
+class ModrinthSearchThread(QThread):
+    search_finished = Signal(object)
+
+    def __init__(self, query, project_type, index, limit, version, loader):
+        super().__init__()
+        self.query = query
+        self.project_type = project_type
+        self.index = index
+        self.limit = limit
+        self.version = version
+        self.loader = loader
+
+    def run(self):
+        try:
+            results = ModrinthAPI.search_projects(
+                self.query, self.project_type, index=self.index, 
+                limit=self.limit, version=self.version, loader=self.loader
+            )
+            self.search_finished.emit(results)
+        except Exception:
+            self.search_finished.emit(None)
+
 class ModrinthBrowser(QWidget):
     item_selected = Signal(object)
     update_item_requested = Signal(object)
@@ -632,6 +654,7 @@ class ModrinthBrowser(QWidget):
         self.project_type = project_type
         self.current_version = None
         self.current_loader = None
+        self._search_thread = None
         layout = QVBoxLayout(self)
         
         # Search Bar
@@ -701,8 +724,22 @@ class ModrinthBrowser(QWidget):
         self.clear_grid()
         version = self.get_active_version()
         loader = self.get_active_loader()
-        results = ModrinthAPI.search_projects("", self.project_type, index="downloads", limit=18, version=version, loader=loader)
-        self.populate(results)
+        
+        loading_lbl = QLabel("Yükleniyor...")
+        loading_lbl.setAlignment(Qt.AlignCenter)
+        loading_lbl.setStyleSheet("color: white; font-size: 16px;")
+        self.grid_layout.addWidget(loading_lbl)
+        
+        if not hasattr(self, '_search_threads'):
+            self._search_threads = []
+            
+        self._search_threads = [t for t in self._search_threads if t.isRunning()]
+        
+        thread = ModrinthSearchThread("", self.project_type, "downloads", 18, version, loader)
+        thread.search_finished.connect(self.on_search_finished)
+        self._search_threads.append(thread)
+        self._search_thread = thread # keep as latest
+        thread.start()
 
     def search(self):
         query = self.search_input.text().strip()
@@ -713,7 +750,37 @@ class ModrinthBrowser(QWidget):
         self.clear_grid()
         version = self.get_active_version()
         loader = self.get_active_loader()
-        results = ModrinthAPI.search_projects(query, self.project_type, index="relevance", limit=18, version=version, loader=loader)
+        
+        loading_lbl = QLabel("Yükleniyor...")
+        loading_lbl.setAlignment(Qt.AlignCenter)
+        loading_lbl.setStyleSheet("color: white; font-size: 16px;")
+        self.grid_layout.addWidget(loading_lbl)
+        
+        if not hasattr(self, '_search_threads'):
+            self._search_threads = []
+            
+        self._search_threads = [t for t in self._search_threads if t.isRunning()]
+        
+        thread = ModrinthSearchThread(query, self.project_type, "relevance", 18, version, loader)
+        thread.search_finished.connect(self.on_search_finished)
+        self._search_threads.append(thread)
+        self._search_thread = thread # keep as latest
+        thread.start()
+
+    def on_search_finished(self, results):
+        # Yalnızca en son başlatılan thread'in sonucunu kabul et
+        sender = self.sender()
+        if hasattr(self, '_search_thread') and sender != self._search_thread:
+            return
+            
+        self.clear_grid()
+        if results is None or not results:
+            msg = "Modlar yüklenemedi, internet bağlantınızı kontrol edin." if results is None else "Sonuç bulunamadı."
+            error_lbl = QLabel(msg)
+            error_lbl.setAlignment(Qt.AlignCenter)
+            error_lbl.setStyleSheet("color: #FF5555; font-size: 16px;")
+            self.grid_layout.addWidget(error_lbl)
+            return
         self.populate(results)
 
     def clear_grid(self):

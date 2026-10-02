@@ -281,7 +281,7 @@ class RestoreThread(QThread):
             self.restore_finished.emit(False, f"Geri yükleme hatası: {str(e)}")
 
 class ModrinthSearchThread(QThread):
-    search_finished = Signal(list)
+    search_finished = Signal(object)
     
     def __init__(self, query, project_type):
         super().__init__()
