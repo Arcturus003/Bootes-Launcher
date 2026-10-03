@@ -75,16 +75,19 @@ class ImageLabel(QLabel):
             orig_h = self._pixmap.height()
             if orig_w > 0:
                 h = int(w * orig_h / orig_w)
-                # Don't exceed 350px, and don't scale up past original height
-                return min(h, 350, orig_h)
+                if orig_w < 256 and orig_h < 256:
+                    return min(h, 350, orig_h)
+                return min(h, 350)
         return super().heightForWidth(w)
 
     def sizeHint(self):
-        # Provide a stable sizeHint so layout doesn't bounce
         if self._pixmap and not self._pixmap.isNull():
             orig_w = self._pixmap.width()
             orig_h = self._pixmap.height()
-            h = min(orig_h, 350)
+            if orig_w < 256 and orig_h < 256:
+                h = min(orig_h, 350)
+            else:
+                h = 350
             w = int(h * orig_w / orig_h) if orig_h > 0 else orig_w
             return QSize(w, h)
         return super().sizeHint()
@@ -99,9 +102,15 @@ class ImageLabel(QLabel):
             h = self.height()
             if w < 10 or h < 10: return
             
-            # Prevent scaling up beyond the image's original dimensions
-            scale_w = min(w, self._pixmap.width())
-            scale_h = min(h, self._pixmap.height())
+            orig_w = self._pixmap.width()
+            orig_h = self._pixmap.height()
+            
+            if orig_w < 256 and orig_h < 256:
+                scale_w = min(w, orig_w)
+                scale_h = min(h, orig_h)
+            else:
+                scale_w = w
+                scale_h = h
             
             scaled = self._pixmap.scaled(scale_w, scale_h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             
