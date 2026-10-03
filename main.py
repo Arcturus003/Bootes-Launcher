@@ -941,7 +941,7 @@ class NexusClient(QMainWindow):
             sys.exit(1)
             
         self.setWindowTitle(f"Nexus Client — by {__author__}")
-        self.resize(1200, 720)
+        self.resize(1440, 810)
         self.setWindowIcon(QIcon("enderman_icon.ico"))
         self._active_threads = []
         self.active_profile_version = None
