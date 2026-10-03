@@ -665,6 +665,35 @@ class ModrinthBrowser(QWidget):
         search_layout.addWidget(self.search_input)
         layout.addLayout(search_layout)
         
+        # Filters
+        filter_layout = QHBoxLayout()
+        
+        self.sort_combo = QComboBox()
+        self.sort_combo.addItem("İlgiliye Göre", "relevance")
+        self.sort_combo.addItem("İndirme Sayısı", "downloads")
+        self.sort_combo.addItem("En Yeni", "newest")
+        self.sort_combo.addItem("Son Güncellenen", "updated")
+        self.sort_combo.currentIndexChanged.connect(lambda x=None: self.search())
+        filter_layout.addWidget(self.sort_combo)
+        
+        self.version_combo = QComboBox()
+        self.version_combo.addItem("Otomatik (Aktif Profil)", "detect")
+        self.version_combo.addItem("Tüm Sürümler", "all")
+        for v in ["1.21.1", "1.21", "1.20.4", "1.20.1", "1.19.4", "1.19.2", "1.18.2", "1.16.5", "1.12.2"]:
+            self.version_combo.addItem(v, v)
+        self.version_combo.currentIndexChanged.connect(lambda x=None: self.search())
+        filter_layout.addWidget(self.version_combo)
+        
+        self.loader_combo = QComboBox()
+        self.loader_combo.addItem("Otomatik (Aktif Profil)", "detect")
+        self.loader_combo.addItem("Tümü", "all")
+        for l in ["Forge", "NeoForge", "Fabric", "Quilt"]:
+            self.loader_combo.addItem(l, l.lower())
+        self.loader_combo.currentIndexChanged.connect(lambda x=None: self.search())
+        filter_layout.addWidget(self.loader_combo)
+        
+        layout.addLayout(filter_layout)
+        
         self.search_timer = QTimer()
         self.search_timer.setSingleShot(True)
         self.search_timer.timeout.connect(self.search)
@@ -682,8 +711,16 @@ class ModrinthBrowser(QWidget):
         layout.addWidget(self.scroll)
 
     def get_active_loader(self):
+        if hasattr(self, 'loader_combo'):
+            selected = self.loader_combo.currentData()
+            if selected == "all":
+                return None
+            elif selected != "detect":
+                return selected
+                
         if self.project_type != "mod":
             return None
+            
         window = self.window()
         loader = getattr(window, 'active_profile_loader', None)
         if loader:
@@ -704,6 +741,13 @@ class ModrinthBrowser(QWidget):
         self.search_timer.start(500)
 
     def get_active_version(self):
+        if hasattr(self, 'version_combo'):
+            selected = self.version_combo.currentData()
+            if selected == "all":
+                return None
+            elif selected != "detect":
+                return selected
+                
         # Modpaketleri kendi Minecraft sürümünü belirlediği için aktif profilin sürümüyle filtrelememeliyiz.
         if self.project_type == "modpack":
             return None
@@ -724,6 +768,7 @@ class ModrinthBrowser(QWidget):
         self.clear_grid()
         version = self.get_active_version()
         loader = self.get_active_loader()
+        sort_index = self.sort_combo.currentData() if hasattr(self, 'sort_combo') else "downloads"
         
         loading_lbl = QLabel("Yükleniyor...")
         loading_lbl.setAlignment(Qt.AlignCenter)
@@ -735,7 +780,7 @@ class ModrinthBrowser(QWidget):
             
         self._search_threads = [t for t in self._search_threads if t.isRunning()]
         
-        thread = ModrinthSearchThread("", self.project_type, "downloads", 18, version, loader)
+        thread = ModrinthSearchThread("", self.project_type, sort_index, 18, version, loader)
         thread.search_finished.connect(self.on_search_finished)
         self._search_threads.append(thread)
         self._search_thread = thread # keep as latest
@@ -750,6 +795,7 @@ class ModrinthBrowser(QWidget):
         self.clear_grid()
         version = self.get_active_version()
         loader = self.get_active_loader()
+        sort_index = self.sort_combo.currentData() if hasattr(self, 'sort_combo') else "relevance"
         
         loading_lbl = QLabel("Yükleniyor...")
         loading_lbl.setAlignment(Qt.AlignCenter)
@@ -761,7 +807,7 @@ class ModrinthBrowser(QWidget):
             
         self._search_threads = [t for t in self._search_threads if t.isRunning()]
         
-        thread = ModrinthSearchThread(query, self.project_type, "relevance", 18, version, loader)
+        thread = ModrinthSearchThread(query, self.project_type, sort_index, 18, version, loader)
         thread.search_finished.connect(self.on_search_finished)
         self._search_threads.append(thread)
         self._search_thread = thread # keep as latest
