@@ -571,9 +571,7 @@ class DetailPanel(QWidget):
         self.gallery_layout.setAlignment(Qt.AlignTop)
         
         self.gallery_scroll.setWidget(self.gallery_container)
-        layout.addWidget(self.gallery_scroll)
-        
-        layout.addStretch()
+        layout.addWidget(self.gallery_scroll, 1)
         
         self.download_btn = QPushButton("Aktif Profile İndir")
         self.download_btn.clicked.connect(self.on_download_click)
