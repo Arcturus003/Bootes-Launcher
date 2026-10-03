@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                                QHBoxLayout, QPushButton, QLabel, QLineEdit, QScrollArea,
                                QStackedWidget, QSplitter, QComboBox, QMessageBox, QDialog, QFormLayout, QSpinBox, QListWidget, QListWidgetItem, QProgressDialog, QProgressBar)
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QSize
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QIcon, QPixmap, QPainter, QPainterPath, QPen, QColor
 
 from mod_manager import ModrinthAPI
 from ui_components import NavBar, ActionBar, InstalledModsPanel
@@ -45,13 +45,24 @@ class ImageLabel(QLabel):
         self._pixmap = None
         self.setAlignment(Qt.AlignCenter)
         self.setMinimumHeight(50)
+        self.setMaximumHeight(350)
         
         sizePolicy = QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         sizePolicy.setHeightForWidth(True)
         self.setSizePolicy(sizePolicy)
+        
+        from PySide6.QtWidgets import QGraphicsDropShadowEffect
+        self.shadow = QGraphicsDropShadowEffect(self)
+        self.shadow.setBlurRadius(15)
+        self.shadow.setColor(QColor(0, 0, 0, 150))
+        self.shadow.setOffset(0, 4)
+        self.setGraphicsEffect(self.shadow)
+        self.shadow.setEnabled(False)
 
     def set_image(self, pixmap):
         self._pixmap = pixmap
+        self.setStyleSheet("background: transparent; border: none; margin-bottom: 10px;")
+        self.shadow.setEnabled(True)
         self.updateGeometry()
         self.update_image()
 
@@ -63,12 +74,20 @@ class ImageLabel(QLabel):
             orig_w = self._pixmap.width()
             orig_h = self._pixmap.height()
             if orig_w > 0:
-                return int(w * orig_h / orig_w)
+                h = int(w * orig_h / orig_w)
+                # Don't exceed 350px, and don't scale up past original height
+                return min(h, 350, orig_h)
         return super().heightForWidth(w)
 
     def sizeHint(self):
-        w = self.width()
-        return QSize(w, self.heightForWidth(w))
+        # Provide a stable sizeHint so layout doesn't bounce
+        if self._pixmap and not self._pixmap.isNull():
+            orig_w = self._pixmap.width()
+            orig_h = self._pixmap.height()
+            h = min(orig_h, 350)
+            w = int(h * orig_w / orig_h) if orig_h > 0 else orig_w
+            return QSize(w, h)
+        return super().sizeHint()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -80,8 +99,32 @@ class ImageLabel(QLabel):
             h = self.height()
             if w < 10 or h < 10: return
             
-            scaled = self._pixmap.scaled(w, h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            super().setPixmap(scaled)
+            # Prevent scaling up beyond the image's original dimensions
+            scale_w = min(w, self._pixmap.width())
+            scale_h = min(h, self._pixmap.height())
+            
+            scaled = self._pixmap.scaled(scale_w, scale_h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            
+            rounded = QPixmap(scaled.size())
+            rounded.fill(Qt.transparent)
+            
+            painter = QPainter(rounded)
+            painter.setRenderHint(QPainter.Antialiasing)
+            
+            path = QPainterPath()
+            path.addRoundedRect(1, 1, scaled.width() - 2, scaled.height() - 2, 12, 12)
+            
+            painter.setClipPath(path)
+            painter.drawPixmap(0, 0, scaled)
+            
+            painter.setClipping(False)
+            pen = QPen(QColor(255, 255, 255, 40))
+            pen.setWidth(1)
+            painter.setPen(pen)
+            painter.drawPath(path)
+            painter.end()
+            
+            super().setPixmap(rounded)
 
 class DownloadModThread(QThread):
     task_finished = Signal(bool, str)
