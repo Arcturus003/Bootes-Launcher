@@ -45,7 +45,7 @@ class ImageLabel(QLabel):
         self._pixmap = None
         self.setAlignment(Qt.AlignCenter)
         self.setMinimumHeight(50)
-        self.setMaximumHeight(350)
+        
         
         sizePolicy = QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         sizePolicy.setHeightForWidth(True)
@@ -76,20 +76,17 @@ class ImageLabel(QLabel):
             if orig_w > 0:
                 h = int(w * orig_h / orig_w)
                 if orig_w < 256 and orig_h < 256:
-                    return min(h, 350, orig_h)
-                return min(h, 350)
+                    return min(h, orig_h) # Don't scale up tiny icons
+                return h # Let it grow as much as the width requires
         return super().heightForWidth(w)
 
     def sizeHint(self):
         if self._pixmap and not self._pixmap.isNull():
             orig_w = self._pixmap.width()
             orig_h = self._pixmap.height()
-            if orig_w < 256 and orig_h < 256:
-                h = min(orig_h, 350)
-            else:
-                h = 350
-            w = int(h * orig_w / orig_h) if orig_h > 0 else orig_w
-            return QSize(w, h)
+            # We want it to be as wide as possible, but sizeHint doesn't know layout width.
+            # QSizePolicy.Ignored will handle width expansion. Just return original dimensions.
+            return QSize(orig_w, orig_h)
         return super().sizeHint()
 
     def resizeEvent(self, event):
