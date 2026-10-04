@@ -39,3 +39,10 @@ launcher_config.json
 
 # Agents Context
 .agents/
+
+# Extra secrets
+*.env
+.env
+*.pem
+*.key
+

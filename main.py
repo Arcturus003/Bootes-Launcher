@@ -2249,4 +2249,13 @@ if __name__ == "__main__":
         
     window = NexusClient()
     window.show()
+
+    # GitHub Releases uzerinden guncelleme kontrolu (arka planda, hata olursa sessiz)
+    try:
+        from app_updater import AppUpdater
+        window._app_updater = AppUpdater(window, __version__)
+        QTimer.singleShot(3000, window._app_updater.check)
+    except Exception as _upd_err:
+        print(f"[Updater] Baslatilamadi: {_upd_err}")
+
     sys.exit(app.exec())
