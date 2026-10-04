@@ -1,4 +1,4 @@
-; MyAppVersion main.py icindeki __version__ ile AYNI olmalidir (bkz. RELEASING.md)
+﻿; MyAppVersion main.py icindeki __version__ ile AYNI olmalidir (bkz. RELEASING.md)
 #define MyAppVersion "1.0.0"
 
 [Setup]

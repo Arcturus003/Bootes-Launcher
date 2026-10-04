@@ -2251,10 +2251,12 @@ if __name__ == "__main__":
     window.show()
 
     # GitHub Releases uzerinden guncelleme kontrolu (arka planda, hata olursa sessiz)
+    # Gelistirme ortaminda (python main.py) varsayilan olarak kapali; test icin NEXUS_UPDATE_DEV=1
     try:
-        from app_updater import AppUpdater
-        window._app_updater = AppUpdater(window, __version__)
-        QTimer.singleShot(3000, window._app_updater.check)
+        if getattr(sys, 'frozen', False) or os.environ.get('NEXUS_UPDATE_DEV') == '1':
+            from app_updater import AppUpdater
+            window._app_updater = AppUpdater(window, __version__)
+            QTimer.singleShot(3000, window._app_updater.check)
     except Exception as _upd_err:
         print(f"[Updater] Baslatilamadi: {_upd_err}")
 
