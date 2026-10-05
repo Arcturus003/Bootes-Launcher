@@ -1,7 +1,7 @@
 ﻿<div align="center">
   <img src="https://raw.githubusercontent.com/Arcturus003/Bootes-Launcher/main/bg.jpg" alt="Bootes Launcher Banner" width="100%" style="border-radius: 15px;">
   
-  <h1>🚀 Bootes Launcher</h1>
+  <h1> Bootes Launcher</h1>
   <p><b>A modern, lightning-fast, and deeply integrated Minecraft Launcher.</b></p>
 
   <a href="https://github.com/Arcturus003/Bootes-Launcher/releases/latest">
