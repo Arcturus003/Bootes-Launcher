@@ -16,9 +16,9 @@ import urllib.request
 from PySide6.QtCore import QObject, QThread, Signal, Qt
 from PySide6.QtWidgets import QMessageBox, QProgressDialog, QApplication
 
-GITHUB_REPO = "Arcturus003/nexus-client"
+GITHUB_REPO = "Arcturus003/Vega-Launcher"
 LATEST_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
-USER_AGENT = "NexusClient-Updater"
+USER_AGENT = "VegaLauncher-Updater"
 
 
 def parse_version(text):
@@ -90,7 +90,7 @@ class UpdateDownloadThread(QThread):
     def __init__(self, url, filename, parent=None):
         super().__init__(parent)
         self.url = url
-        self.filename = os.path.basename(filename) or "NexusClient_Setup.exe"
+        self.filename = os.path.basename(filename) or "VegaLauncher_Setup.exe"
         self._cancel = False
 
     def cancel(self):
@@ -168,7 +168,7 @@ class AppUpdater(QObject):
         if ans != QMessageBox.Yes:
             return
         dlg = QProgressDialog("Güncelleme indiriliyor...", "İptal", 0, 100, self.window)
-        dlg.setWindowTitle("Nexus Client Güncelleme")
+        dlg.setWindowTitle("Vega Launcher Güncelleme")
         dlg.setWindowModality(Qt.WindowModal)
         dlg.setMinimumDuration(0)
         dlg.setAutoClose(False)

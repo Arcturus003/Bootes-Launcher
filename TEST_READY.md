@@ -1,4 +1,4 @@
-# Nexus Client E2E Test Suite Readiness (`TEST_READY.md`)
+# Vega Launcher E2E Test Suite Readiness (`TEST_READY.md`)
 
 ## 1. Test Command
 
@@ -27,11 +27,11 @@ All tests execute headlessly (`QT_QPA_PLATFORM=offscreen`) without opening visua
 ### Tier 1: Feature Coverage (>= 5 test cases per feature)
 - [x] **Application Startup (6 tests)**
   - `test_qapplication_offscreen_initialization` — Offscreen platform verification
-  - `test_nexus_client_instantiation_and_window_properties` — Title and dimensions (1200x720)
-  - `test_nexus_client_core_widgets_present` — NavBar, Stack, ProfilePage, ServerWidget, ActionBar, StatusBar
-  - `test_nexus_client_directory_initialization` — Auto-creation of `profiles/` and `launcher_config.json`
-  - `test_nexus_client_navigation_tabs` — Navigation between tabs and QStackedWidget page switching
-  - `test_nexus_client_filter_profiles` — Dynamic profile list filtering
+  - `test_vega_launcher_instantiation_and_window_properties` — Title and dimensions (1200x720)
+  - `test_vega_launcher_core_widgets_present` — NavBar, Stack, ProfilePage, ServerWidget, ActionBar, StatusBar
+  - `test_vega_launcher_directory_initialization` — Auto-creation of `profiles/` and `launcher_config.json`
+  - `test_vega_launcher_navigation_tabs` — Navigation between tabs and QStackedWidget page switching
+  - `test_vega_launcher_filter_profiles` — Dynamic profile list filtering
 - [x] **Profile Dialog Initialization (6 tests)**
   - `test_edit_profile_dialog_init` — Title, name input, and RAM spinbox configuration
   - `test_edit_profile_dialog_get_data` — Data extraction and whitespace stripping
@@ -107,8 +107,8 @@ The following defect is actively tracked and asserted by the test suite:
 
 ### Defect 1: Missing Window `closeEvent` and Thread Teardown (Milestone M2 Feature 6)
 - **Failing Test**: `tests.test_tier4_real_world.TestRealWorldScenarios.test_clean_shutdown_and_thread_lifecycle_contract`
-- **Location**: `main.py:NexusClient`
-- **Observation**: `NexusClient` does not implement `closeEvent`. Background threads in `self._active_threads` (e.g. `UpdateCheckerThread`) remain running when the application is closed. If Python process teardown commences while a QThread is executing in C++, PySide6 throws `QThread: Destroyed while thread is still running` and exits with error code 1.
+- **Location**: `main.py:VegaLauncher`
+- **Observation**: `VegaLauncher` does not implement `closeEvent`. Background threads in `self._active_threads` (e.g. `UpdateCheckerThread`) remain running when the application is closed. If Python process teardown commences while a QThread is executing in C++, PySide6 throws `QThread: Destroyed while thread is still running` and exits with error code 1.
 - **Contract Requirement (`PROJECT.md` § Interface Contracts)**:
-  `NexusClient.closeEvent(event)` must iterate over `self._active_threads`, call `th.quit()` and `th.wait()`, invoke `server_widget.cleanup()`, and accept the close event cleanly with exit code 0.
+  `VegaLauncher.closeEvent(event)` must iterate over `self._active_threads`, call `th.quit()` and `th.wait()`, invoke `server_widget.cleanup()`, and accept the close event cleanly with exit code 0.
 - **Assigned Milestone**: M2 (Thread Safety & Process Lifecycle).

@@ -1,4 +1,4 @@
-__app_name__ = "Nexus Client"
+__app_name__ = "Vega Launcher"
 __author__ = "Arcturus"
 __version__ = "1.0.0"
 __copyright__ = "© 2026 Arcturus. All rights reserved."
@@ -19,8 +19,8 @@ import threading
 
 # Görev çubuğunda (Taskbar) ve Görev Yöneticisi'nde doğru ikon/isimle çıkması için
 try:
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Arcturus.NexusClient.1.0")
-    ctypes.windll.kernel32.SetConsoleTitleW("Nexus Client")
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Arcturus.VegaLauncher.1.0")
+    ctypes.windll.kernel32.SetConsoleTitleW("Vega Launcher")
 except: pass
 
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -174,12 +174,20 @@ class DownloadModpackThread(QThread):
                 self.progress_update.emit("Arşiv açılıyor...")
                 self.progress_val.emit(0, 0)
                 try:
-                    with zipfile.ZipFile(mrpack_path, 'r') as zip_ref:
-                        zip_ref.extractall(tmpdirname)
+                    if mrpack_path.lower().endswith(".rar"):
+                        import subprocess
+                        subprocess.run(["tar", "-xf", mrpack_path, "-C", tmpdirname], check=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                    else:
+                        with zipfile.ZipFile(mrpack_path, 'r') as zip_ref:
+                            zip_ref.extractall(tmpdirname)
                 except Exception as e:
-                    if "Overlapped entries" in str(e) or "zip bomb" in str(e).lower():
+                    if "Overlapped entries" in str(e) or "zip bomb" in str(e).lower() or "not a zip file" in str(e).lower():
                         self.progress_update.emit("Arşiv açılıyor (Alternatif metod ile)...")
-                        subprocess.run(["powershell", "-NoProfile", "-Command", f"Expand-Archive -Force -Path '{mrpack_path}' -DestinationPath '{tmpdirname}'"], check=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                        try:
+                            subprocess.run(["powershell", "-NoProfile", "-Command", f"Expand-Archive -Force -Path '{mrpack_path}' -DestinationPath '{tmpdirname}'"], check=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                        except Exception:
+                            # Son çare olarak tar ile dene
+                            subprocess.run(["tar", "-xf", mrpack_path, "-C", tmpdirname], check=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
                     else:
                         raise e
                     
@@ -977,7 +985,7 @@ class CustomProgressOverlay(QDialog):
             self.desc_lbl.setText(text)
 
 
-class NexusClient(QMainWindow):
+class VegaLauncher(QMainWindow):
     def __init__(self):
         super().__init__()
         import integrity_check
@@ -987,9 +995,14 @@ class NexusClient(QMainWindow):
             QMessageBox.critical(None, "Güvenlik Uyarısı", f"⚠️ Bu uygulama yetkisiz olarak değiştirilmiş! Orijinal sürümü indirin: {__author__}")
             sys.exit(1)
             
-        self.setWindowTitle(f"Nexus Client — by {__author__}")
+        self.setWindowTitle(f"Vega Launcher — by {__author__}")
         self.resize(1440, 810)
-        self.setWindowIcon(QIcon("enderman_icon.ico"))
+        if getattr(sys, 'frozen', False):
+            self.base_dir = os.path.dirname(sys.executable)
+        else:
+            self.base_dir = os.path.dirname(os.path.abspath(__file__))
+            
+        self.setWindowIcon(QIcon(os.path.join(self.base_dir, "enderman_icon.ico")))
         self._active_threads = []
         self.active_profile_version = None
         self.active_profile_loader = None
@@ -997,16 +1010,11 @@ class NexusClient(QMainWindow):
 
         
         try:
-            with open(os.path.join(os.path.dirname(__file__), "style.qss"), "r", encoding="utf-8") as f:
+            with open(os.path.join(self.base_dir, "style.qss"), "r", encoding="utf-8") as f:
                 self.setStyleSheet(f.read())
         except: pass
         
-        if getattr(sys, 'frozen', False):
-            self.base_dir = os.path.dirname(sys.executable)
-        else:
-            self.base_dir = os.path.dirname(os.path.abspath(__file__))
-            
-        self.data_dir = os.path.join(os.environ.get("APPDATA"), ".nexus_client")
+        self.data_dir = os.path.join(os.environ.get("APPDATA"), ".vega_launcher")
         os.makedirs(self.data_dir, exist_ok=True)
         self.profiles_dir = os.path.join(self.data_dir, "profiles")
         self.config_file = os.path.join(self.data_dir, "launcher_config.json")
@@ -1014,9 +1022,6 @@ class NexusClient(QMainWindow):
         self.ms_login = {}
         
         bg_path = os.path.join(self.base_dir, "bg.jpg")
-        if not os.path.exists(bg_path) and getattr(sys, 'frozen', False):
-            bg_path = os.path.join(os.path.dirname(__file__), "bg.jpg")
-            
         if os.path.exists(bg_path):
             bg_path_fwd = bg_path.replace("\\", "/")
             extra_css = f"QMainWindow {{ background-image: url('{bg_path_fwd}'); background-position: center; }}"
@@ -1104,19 +1109,19 @@ class NexusClient(QMainWindow):
                     print(f"Error reading {file_path}: {e}")
                     continue
             
-            # Remove old nexus_ profiles that might have been deleted
-            keys_to_remove = [k for k in data.get("profiles", {}) if k.startswith("nexus_")]
+            # Remove old vega_ profiles that might have been deleted
+            keys_to_remove = [k for k in data.get("profiles", {}) if k.startswith("vega_")]
             for k in keys_to_remove:
                 del data["profiles"][k]
             
             for pid, pdata in getattr(self, "profiles", {}).items():
-                profile_key = f"nexus_{pid}"
+                profile_key = f"vega_{pid}"
                 ram_val = pdata.get("ram")
                 if not ram_val:
                     ram_val = 4096
                 
                 data["profiles"][profile_key] = {
-                    "name": f"[Nexus] {pdata.get('name') or 'Unknown'}",
+                    "name": f"[Vega] {pdata.get('name') or 'Unknown'}",
                     "lastVersionId": pdata.get("version_id") or pdata.get("version") or "",
                     "gameDir": pdata.get("path") or "",
                     "javaArgs": f"-Xmx{ram_val}m -Xms512m",
@@ -1281,7 +1286,7 @@ class NexusClient(QMainWindow):
         dun_top_layout = QVBoxLayout(dun_top)
         
         dun_lbl = QLabel("Minecraft Dungeons")
-        dun_lbl.setStyleSheet("font-size: 36px; font-weight: 900; color: #FFAAFF; margin-top: 10px; text-shadow: 2px 2px 4px #000000;")
+        dun_lbl.setStyleSheet("font-size: 36px; font-weight: 900; color: #FFAAFF; margin-top: 10px;")
         dun_lbl.setAlignment(Qt.AlignCenter)
         dun_desc = QLabel("Zindanları keşfet, efsanevi silahlar kuşan ve Arch-Illager'ı yen!")
         dun_desc.setStyleSheet("font-size: 16px; color: #DDDDDD; margin-bottom: 20px;")
@@ -1369,7 +1374,7 @@ class NexusClient(QMainWindow):
         
         # Durum çubuğu
         self.statusBar().setStyleSheet("color: #888; background: rgba(15,15,20,0.9); border-top: 1px solid #333;")
-        self.statusBar().showMessage("Nexus Client hazır — Profil seçip OYNA'ya basın!")
+        self.statusBar().showMessage("Vega Launcher hazır — Profil seçip OYNA'ya basın!")
         self.start_update_checker()
 
     def filter_profiles(self, text):
@@ -1424,6 +1429,7 @@ class NexusClient(QMainWindow):
 
     def on_browser_item_selected(self, data):
         self.right_stack.setCurrentWidget(self.detail_panel)
+        self.detail_panel.show()
         self.right_stack.show()
         self.detail_panel.update_info(data)
 
@@ -1666,7 +1672,7 @@ class NexusClient(QMainWindow):
     def install_from_file(self):
         try:
             from PySide6.QtWidgets import QFileDialog
-            file_path, _ = QFileDialog.getOpenFileName(self, "Modpack Arşivi Seç", "", "Arşiv Dosyaları (*.zip *.mrpack)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Modpack Arşivi Seç", "", "Arşiv Dosyaları (*.zip *.mrpack *.rar)")
             if not file_path: return
             
             base_name = os.path.basename(file_path).split('.')[0]
@@ -1965,7 +1971,7 @@ class NexusClient(QMainWindow):
                 "uuid": self.ms_login.get("id", ""),
                 "token": self.ms_login.get("access_token", ""),
                 "jvmArguments": [f"-Xmx{pdata.get('ram', 2048)}m", "-Xms512m"],
-                "launcherName": "Nexus Client",
+                "launcherName": "Vega Launcher",
                 "launcherVersion": "1.0",
                 "gameDirectory": pdata["path"],
             }
@@ -2236,9 +2242,14 @@ class NexusClient(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setApplicationName('Nexus Client')
+    app.setApplicationName('Vega Launcher')
     app.setOrganizationName('Arcturus')
-    app.setWindowIcon(QIcon('enderman_icon.ico'))
+    
+    if getattr(sys, 'frozen', False):
+        app_base_dir = os.path.dirname(sys.executable)
+    else:
+        app_base_dir = os.path.dirname(os.path.abspath(__file__))
+    app.setWindowIcon(QIcon(os.path.join(app_base_dir, 'enderman_icon.ico')))
     
     import integrity_check
     is_ok, tampered = integrity_check.verify_integrity()
@@ -2247,13 +2258,13 @@ if __name__ == "__main__":
         QMessageBox.critical(None, "Güvenlik Uyarısı", f"⚠️ Bu uygulama yetkisiz olarak değiştirilmiş! Orijinal sürümü indirin: {__author__}")
         sys.exit(1)
         
-    window = NexusClient()
+    window = VegaLauncher()
     window.show()
 
     # GitHub Releases uzerinden guncelleme kontrolu (arka planda, hata olursa sessiz)
-    # Gelistirme ortaminda (python main.py) varsayilan olarak kapali; test icin NEXUS_UPDATE_DEV=1
+    # Gelistirme ortaminda (python main.py) varsayilan olarak kapali; test icin VEGA_UPDATE_DEV=1
     try:
-        if getattr(sys, 'frozen', False) or os.environ.get('NEXUS_UPDATE_DEV') == '1':
+        if getattr(sys, 'frozen', False) or os.environ.get('VEGA_UPDATE_DEV') == '1':
             from app_updater import AppUpdater
             window._app_updater = AppUpdater(window, __version__)
             QTimer.singleShot(3000, window._app_updater.check)

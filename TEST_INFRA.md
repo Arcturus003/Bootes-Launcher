@@ -1,8 +1,8 @@
-# Nexus Client Test Infrastructure Documentation (`TEST_INFRA.md`)
+# Vega Launcher Test Infrastructure Documentation (`TEST_INFRA.md`)
 
 ## 1. Overview & Architecture
 
-The Nexus Client E2E test infrastructure is designed for **opaque-box, requirement-driven, headless verification** of the PySide6 Minecraft Launcher and Dedicated Server Manager.
+The Vega Launcher E2E test infrastructure is designed for **opaque-box, requirement-driven, headless verification** of the PySide6 Minecraft Launcher and Dedicated Server Manager.
 
 Key architectural pillars:
 - **Headless Offscreen Qt Platform**: All tests enforce `os.environ["QT_QPA_PLATFORM"] = "offscreen"` prior to loading PySide6 GUI components. This allows widget instantiation, event loops, layout engines, and styling without spawning physical desktop windows or blocking CI/CD runners.
@@ -34,11 +34,11 @@ tests/
 Each core feature has at least 5 dedicated test cases:
 1. **Application Startup (6 tests)**:
    - `test_qapplication_offscreen_initialization`: Offscreen headless Qt platform validation.
-   - `test_nexus_client_instantiation_and_window_properties`: Window title, dimensions (1200x720).
-   - `test_nexus_client_core_widgets_present`: Presence of NavBar, QStackedWidget, profile page, server page, ActionBar, statusBar.
-   - `test_nexus_client_directory_initialization`: Creation of `profiles/` and default configuration if absent.
-   - `test_nexus_client_navigation_tabs`: Switching between tabs ("home", "packs", "mods", "shaders", "bedrock_home", "dungeons_home", "server").
-   - `test_nexus_client_filter_profiles`: Real-time QListWidget filtering on profile search input.
+   - `test_vega_launcher_instantiation_and_window_properties`: Window title, dimensions (1200x720).
+   - `test_vega_launcher_core_widgets_present`: Presence of NavBar, QStackedWidget, profile page, server page, ActionBar, statusBar.
+   - `test_vega_launcher_directory_initialization`: Creation of `profiles/` and default configuration if absent.
+   - `test_vega_launcher_navigation_tabs`: Switching between tabs ("home", "packs", "mods", "shaders", "bedrock_home", "dungeons_home", "server").
+   - `test_vega_launcher_filter_profiles`: Real-time QListWidget filtering on profile search input.
 
 2. **Profile Dialog Initialization (6 tests)**:
    - `test_edit_profile_dialog_init`: Verification of EditProfileDialog labels and initial values.
@@ -96,7 +96,7 @@ Each core feature has at least 5 dedicated test cases:
 ---
 
 ### Tier 4: Real-World Scenarios & Concurrency Safety (5 Tests)
-- `test_headless_complete_gui_startup`: Full instantiation of `NexusClient` without fatal errors or missing components.
+- `test_headless_complete_gui_startup`: Full instantiation of `VegaLauncher` without fatal errors or missing components.
 - `test_clean_shutdown_and_thread_lifecycle_contract`: Verification that window close terminates background threads in `_active_threads` to prevent crashes on application exit (M2 Feature 6).
 - `test_pyside6_signal_signatures_compliance`: Comprehensive inspection of all `QThread` subclasses across the codebase, enforcing PySide6 Rule 2 (no `finished = Signal(...)` with arguments).
 - `test_pyside6_thread_ui_safety_signals`: Inspection of worker thread communication patterns, ensuring UI updates occur exclusively via PySide6 Signals.

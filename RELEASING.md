@@ -1,6 +1,6 @@
-# Yeni Sürüm Yayınlama (Nexus Client)
+# Yeni Sürüm Yayınlama (Vega Launcher)
 
-Uygulama açılışta `https://api.github.com/repos/Arcturus003/nexus-client/releases/latest`
+Uygulama açılışta `https://api.github.com/repos/Arcturus003/Vega-Launcher/releases/latest`
 adresini kontrol eder. Release etiketi (ör. `v1.1.0`) `main.py` içindeki `__version__`
 değerinden büyükse kullanıcıya güncelleme sorulur, release'e eklenmiş `.exe` indirilir
 ve sessizce kurulur, ardından uygulama yeniden açılır.
@@ -14,8 +14,8 @@ ve sessizce kurulur, ardından uygulama yeniden açılır.
    ```
    python integrity_check.py generate
    ```
-3. **Derle:** PyInstaller ile `build_out\main\` klasörünü üret (build_nexus_client skill'i),
-   sonra Inno Setup ile `setup.iss`'i derle → `build_out\NexusClient_Setup_v1.1.0.exe`.
+3. **Derle:** PyInstaller ile `build_out\main\` klasörünü üret (build_vega_launcher skill'i),
+   sonra Inno Setup ile `setup.iss`'i derle → `build_out\VegaLauncher_Setup_v1.1.0.exe`.
 4. **Commit + etiket + push:**
    ```
    git add -A
@@ -25,8 +25,8 @@ ve sessizce kurulur, ardından uygulama yeniden açılır.
    git push origin v1.1.0
    ```
    (Dal adınız `master` ise `main` yerine onu yazın: `git branch --show-current`.)
-5. **GitHub Release oluştur:** github.com/Arcturus003/nexus-client → *Releases* →
-   *Draft a new release* → etiket `v1.1.0` seç → `NexusClient_Setup_v1.1.0.exe` dosyasını
+5. **GitHub Release oluştur:** github.com/Arcturus003/Vega-Launcher → *Releases* →
+   *Draft a new release* → etiket `v1.1.0` seç → `VegaLauncher_Setup_v1.1.0.exe` dosyasını
    ekle → **Publish release**. ("Pre-release" veya taslak release'ler kullanıcılara gösterilmez.)
 
 ## Notlar

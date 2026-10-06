@@ -53,7 +53,7 @@ CLIENT_MODS_BLACKLIST = (
 )
 
 def get_base_dir():
-    data_dir = os.path.join(os.environ.get("APPDATA"), ".nexus_client")
+    data_dir = os.path.join(os.environ.get("APPDATA"), ".vega_launcher")
     os.makedirs(data_dir, exist_ok=True)
     return data_dir
 
