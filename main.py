@@ -773,7 +773,7 @@ class ModrinthBrowser(QWidget):
             elif selected != "detect":
                 return selected
                 
-        if self.project_type != "mod":
+        if self.project_type == "shader":
             return None
             
         window = self.window()
@@ -803,10 +803,6 @@ class ModrinthBrowser(QWidget):
             elif selected != "detect":
                 return selected
                 
-        # Modpaketleri kendi Minecraft sürümünü belirlediği için aktif profilin sürümüyle filtrelememeliyiz.
-        if self.project_type == "modpack":
-            return None
-            
         # We need the parent window to get the active profile version
         window = self.window()
         if hasattr(window, 'active_profile_version'):
@@ -1709,12 +1705,18 @@ class VegaLauncher(QMainWindow):
         ptype = project.get("project_type", "mod")
         
         if ptype == "modpack":
+            version = self.pack_browser.get_active_version()
+            loader = self.pack_browser.get_active_loader()
+            
             self.detail_panel.download_btn.setText("Modpack hazırlanıyor...")
             QApplication.processEvents()
             
-            file_data = ModrinthAPI.get_latest_version_file(project["project_id"], game_version=None)
+            file_data = ModrinthAPI.get_latest_version_file(project["project_id"], game_version=version, loader=loader)
             if not file_data:
-                QMessageBox.critical(self, "Hata", "Bu modpack için indirilebilir dosya bulunamadı.")
+                err_msg = "Bu modpack için uygun bir sürüm bulunamadı."
+                if version or loader:
+                    err_msg += f"\n(Filtreler: {version or 'Tümü'} / {loader or 'Tümü'})"
+                QMessageBox.critical(self, "Hata", err_msg)
                 self.detail_panel.download_btn.setText("Modpack'i Yeni Profil Olarak Kur")
                 return
                 
