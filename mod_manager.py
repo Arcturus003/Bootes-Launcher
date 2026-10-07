@@ -12,7 +12,7 @@ class ModrinthAPI:
         ]
         if version:
             facets.append([f"versions:{version}"])
-        if loader and project_type == "mod":
+        if loader:
             if isinstance(loader, (list, tuple)):
                 facets.append([f"categories:{l.lower()}" for l in loader])
             elif loader.lower() == "quilt":
